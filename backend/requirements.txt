@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+sqlmodel
+pydantic-settings
+razorpay
+google-genai
+rich
+python-dotenv
+pytest
+openai
+anthropic
+

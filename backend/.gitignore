@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual environment
+.venv/
+
+# Secrets
+.env
+
+# Generated at runtime — DB and reports are reproducible via scripts/
+*.db
+*.db-journal
+report.txt
+scenario_report.txt
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+.venv/
