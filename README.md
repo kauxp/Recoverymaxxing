@@ -77,3 +77,6 @@ No auth, no build step needed for local use. It expects the API at
    and logging every step to the audit trail.
 3. `app/main.py` exposes that same database read-only over HTTP.
 4. The frontend renders it as a table you can drill into per event.
+
+## Agent Flow Diag
+![alt text](agent_flow_diag.png)
