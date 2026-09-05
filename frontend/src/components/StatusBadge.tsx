@@ -22,13 +22,16 @@ export function CategoryBadge({ category }: { category: string }) {
   return <Badge variant="outline">{titleCase(category)}</Badge>
 }
 
-export function MessageBadge({ sent, real }: { sent: boolean; real: boolean }) {
+export function MessageBadge({ sent, failed, real }: { sent: boolean; failed: boolean; real: boolean }) {
+  if (failed) {
+    return <Badge variant="destructive">Failed to send</Badge>
+  }
   if (!sent) {
     return <Badge variant="outline">No message</Badge>
   }
   return (
     <Badge variant={real ? "default" : "secondary"} className={real ? "bg-sky-600 text-white" : undefined}>
-      {real ? "Sent (real)" : "Sent (simulated)"}
+      {real ? "Requested (real)" : "Sent (simulated)"}
     </Badge>
   )
 }

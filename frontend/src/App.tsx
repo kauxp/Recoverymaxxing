@@ -140,7 +140,7 @@ function App() {
                       </TableCell>
                       <TableCell>{e.attempt_count}</TableCell>
                       <TableCell>
-                        <MessageBadge sent={e.message_sent} real={e.real_notification_sent} />
+                        <MessageBadge sent={e.message_sent} failed={e.message_failed} real={e.real_notification_sent} />
                       </TableCell>
                       <TableCell className="text-right">{formatInr(e.amount_inr)}</TableCell>
                       <TableCell className="text-right">{formatInr(e.recovered_amount_inr)}</TableCell>

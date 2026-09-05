@@ -61,11 +61,12 @@ With the backend API running on port 8000:
 ```bash
 cd frontend
 npm install
+cp .env.example .env
 npm run dev   # http://localhost:5173
 ```
 
-No auth, no build step needed for local use. It expects the API at
-`http://localhost:8000` by default - set `VITE_API_URL` to override.
+No auth, no build step needed for local use. `VITE_API_URL` in `.env` controls where
+it looks for the backend — defaults to `http://localhost:8000`.
 
 ## How it fits together
 

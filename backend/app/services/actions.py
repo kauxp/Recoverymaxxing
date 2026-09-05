@@ -78,6 +78,10 @@ def execute(session, event: RecoveryEvent, decision: RecoveryDecision) -> Recove
         outcome_status = OutcomeStatus.FAILED
 
     real_notification_sent = send_real_notification and decision.action in ARTIFACT_ACTIONS and not api_error_code
+    notification_channels = None
+    if real_notification_sent:
+        channels = ["sms"] + (["whatsapp"] if settings.NOTIFY_WHATSAPP else [])
+        notification_channels = ",".join(channels)
 
     attempt = RecoveryAttempt(
         event_id=event.id,
@@ -90,6 +94,7 @@ def execute(session, event: RecoveryEvent, decision: RecoveryDecision) -> Recove
         outcome_reason=api_error_reason,
         backoff_seconds_used=decision.next_delay_seconds,
         real_notification_sent=real_notification_sent,
+        notification_channels=notification_channels,
         created_at=now,
         resolved_at=now,
     )
@@ -104,13 +109,17 @@ def execute(session, event: RecoveryEvent, decision: RecoveryDecision) -> Recove
         message=(
             f"Executed {decision.action} (rule={decision.rule_fired}): {decision.reason}. "
             f"Outcome: {outcome_status}."
-            + (f" REAL notification sent to {event.customer_phone} via Razorpay." if real_notification_sent else "")
+            + (f" Real notification requested via {notification_channels} to {event.customer_phone}"
+               f" (Razorpay accepted the request; delivery is not confirmed by this API)."
+               if real_notification_sent else "")
+            + (f" Notification request FAILED: {api_error_reason}" if send_real_notification and api_error_code else "")
         ),
         payload_json=json.dumps({
             "razorpay_ref": razorpay_ref,
             "is_genuine": event.is_genuine,
             "api_error_code": api_error_code,
             "real_notification_sent": real_notification_sent,
+            "notification_channels": notification_channels,
         }),
         created_at=now,
     ))

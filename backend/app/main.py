@@ -7,7 +7,8 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 from app.db import create_db_and_tables, get_session
-from app.models import ActionType, AuditLogEntry, Batch, RecoveryAttempt, RecoveryEvent
+from app.models import AuditLogEntry, Batch, OutcomeStatus, RecoveryAttempt, RecoveryEvent
+from app.services.actions import ARTIFACT_ACTIONS
 
 app = FastAPI(title="Revenue Recovery Dashboard API")
 
@@ -32,6 +33,7 @@ class AttemptOut(BaseModel):
     outcome_reason: Optional[str] = None
     backoff_seconds_used: int
     real_notification_sent: bool
+    notification_channels: Optional[str] = None
     created_at: datetime
 
 
@@ -56,6 +58,7 @@ class EventOut(BaseModel):
     attempt_count: int
     is_genuine: bool
     message_sent: bool
+    message_failed: bool
     real_notification_sent: bool
     recovered_amount_inr: float
     created_at: datetime
@@ -72,9 +75,6 @@ class BatchOut(BaseModel):
     total_recovered_inr: float
 
 
-ARTIFACT_ACTIONS = {ActionType.SEND_PAYMENT_LINK, ActionType.RESEND_LINK, ActionType.RETRY_CHARGE}
-
-
 def _event_to_out(session, event: RecoveryEvent) -> EventOut:
     attempts = session.exec(
         select(RecoveryAttempt)
@@ -85,7 +85,9 @@ def _event_to_out(session, event: RecoveryEvent) -> EventOut:
         select(AuditLogEntry).where(AuditLogEntry.event_id == event.id).order_by(AuditLogEntry.created_at)
     ).all()
 
-    message_sent = any(a.action_type in (ActionType.SEND_PAYMENT_LINK, ActionType.RESEND_LINK) for a in attempts)
+    link_attempts = [a for a in attempts if a.action_type in ARTIFACT_ACTIONS]
+    message_failed = any(a.outcome_status == OutcomeStatus.ERROR for a in link_attempts)
+    message_sent = any(a.outcome_status != OutcomeStatus.ERROR for a in link_attempts)
     real_notification_sent = any(a.real_notification_sent for a in attempts)
 
     return EventOut(
@@ -102,6 +104,7 @@ def _event_to_out(session, event: RecoveryEvent) -> EventOut:
         attempt_count=event.attempt_count,
         is_genuine=event.is_genuine,
         message_sent=message_sent,
+        message_failed=message_failed,
         real_notification_sent=real_notification_sent,
         recovered_amount_inr=event.recovered_amount_paise / 100,
         created_at=event.created_at,
@@ -114,6 +117,7 @@ def _event_to_out(session, event: RecoveryEvent) -> EventOut:
                 outcome_reason=a.outcome_reason,
                 backoff_seconds_used=a.backoff_seconds_used,
                 real_notification_sent=a.real_notification_sent,
+                notification_channels=a.notification_channels,
                 created_at=a.created_at,
             )
             for a in attempts

@@ -113,6 +113,7 @@ class RecoveryAttempt(SQLModel, table=True):
 
     backoff_seconds_used: int = 0
     real_notification_sent: bool = False
+    notification_channels: Optional[str] = None
 
     created_at: datetime
     resolved_at: Optional[datetime] = None

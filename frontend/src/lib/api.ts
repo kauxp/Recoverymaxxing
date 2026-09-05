@@ -8,6 +8,7 @@ export interface Attempt {
   outcome_reason: string | null
   backoff_seconds_used: number
   real_notification_sent: boolean
+  notification_channels: string | null
   created_at: string
 }
 
@@ -32,6 +33,7 @@ export interface RecoveryEvent {
   attempt_count: number
   is_genuine: boolean
   message_sent: boolean
+  message_failed: boolean
   real_notification_sent: boolean
   recovered_amount_inr: number
   created_at: string

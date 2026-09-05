@@ -19,7 +19,7 @@ export function EventDetail({ event }: { event: RecoveryEvent }) {
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={event.status} />
           <CategoryBadge category={event.root_cause_category} />
-          <MessageBadge sent={event.message_sent} real={event.real_notification_sent} />
+          <MessageBadge sent={event.message_sent} failed={event.message_failed} real={event.real_notification_sent} />
           {!event.is_genuine && <Badge variant="outline">Simulated data</Badge>}
         </div>
 
@@ -56,9 +56,17 @@ export function EventDetail({ event }: { event: RecoveryEvent }) {
                   </Badge>
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">rule: {a.rule_fired}</div>
-                {a.outcome_reason && <div className="mt-1 text-xs text-muted-foreground">{a.outcome_reason}</div>}
+                {a.outcome_status === "error" && a.outcome_reason && (
+                  <div className="mt-1 text-xs font-medium text-destructive">Razorpay rejected this: {a.outcome_reason}</div>
+                )}
+                {a.outcome_status !== "error" && a.outcome_reason && (
+                  <div className="mt-1 text-xs text-muted-foreground">{a.outcome_reason}</div>
+                )}
                 {a.real_notification_sent && (
-                  <div className="mt-1 text-xs font-medium text-sky-600">Real SMS/WhatsApp sent via Razorpay</div>
+                  <div className="mt-1 text-xs font-medium text-sky-600">
+                    Requested via {a.notification_channels?.split(",").map(titleCase).join(" + ")} to a real phone
+                    — Razorpay accepted the request, but this API does not confirm actual delivery.
+                  </div>
                 )}
               </div>
             ))}
